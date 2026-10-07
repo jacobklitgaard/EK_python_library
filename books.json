@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "borrower": null
+  },
+  {
+    "id": 2,
+    "title": "Python 101",
+    "author": "Anoep",
+    "borrower": null
+  },
+  {
+    "id": 4,
+    "title": "DevOps Expert",
+    "author": "Anoep",
+    "borrower": null
+  }
+]

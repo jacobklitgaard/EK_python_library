@@ -1,0 +1,374 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Bookshelf API",
+    "version": "1.0.0",
+    "description": "API for the student association's bookshelf: list books, add and remove books, and track who has borrowed what. All errors return `{\"error\": \"message\"}`."
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:5000",
+      "description": "Local development"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Books"
+    },
+    {
+      "name": "Loans"
+    }
+  ],
+  "paths": {
+    "/books": {
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "List all books",
+        "operationId": "listBooks",
+        "parameters": [
+          {
+            "name": "available",
+            "in": "query",
+            "required": false,
+            "description": "`true` = only books on the shelf, `false` = only loaned books. Omit to get all.",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "All books (possibly filtered)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Book"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Add a book",
+        "operationId": "addBook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewBook"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Book created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            },
+            "headers": {
+              "Location": {
+                "description": "URL of the new book",
+                "schema": {
+                  "type": "string",
+                  "example": "/books/3"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Body is not JSON, or `title` is missing/empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{bookId}": {
+      "parameters": [
+        {
+          "name": "bookId",
+          "in": "path",
+          "required": true,
+          "description": "The book's id",
+          "schema": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Get one book",
+        "operationId": "getBook",
+        "responses": {
+          "200": {
+            "description": "The book",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No book with that id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Books"
+        ],
+        "summary": "Remove a book from the shelf",
+        "operationId": "deleteBook",
+        "responses": {
+          "204": {
+            "description": "Book deleted, no body"
+          },
+          "404": {
+            "description": "No book with that id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{bookId}/loan": {
+      "parameters": [
+        {
+          "name": "bookId",
+          "in": "path",
+          "required": true,
+          "description": "The book's id",
+          "schema": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Loans"
+        ],
+        "summary": "Mark a book as loaned",
+        "operationId": "loanBook",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoanRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Book is now loaned out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`borrower` is missing/empty",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No book with that id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Book is already loaned out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/books/{bookId}/return": {
+      "parameters": [
+        {
+          "name": "bookId",
+          "in": "path",
+          "required": true,
+          "description": "The book's id",
+          "schema": {
+            "type": "integer",
+            "example": 1
+          }
+        }
+      ],
+      "post": {
+        "tags": [
+          "Loans"
+        ],
+        "summary": "Mark a book as returned",
+        "operationId": "returnBook",
+        "responses": {
+          "200": {
+            "description": "Book is back on the shelf",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Book"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No book with that id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Book is not loaned out",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Book": {
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "author",
+          "borrower"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 1
+          },
+          "title": {
+            "type": "string",
+            "example": "Clean Code"
+          },
+          "author": {
+            "type": "string",
+            "nullable": true,
+            "example": "Robert C. Martin"
+          },
+          "borrower": {
+            "type": "string",
+            "nullable": true,
+            "description": "Name of the borrower, or null if the book is on the shelf",
+            "example": null
+          }
+        }
+      },
+      "NewBook": {
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Clean Code"
+          },
+          "author": {
+            "type": "string",
+            "example": "Robert C. Martin"
+          }
+        }
+      },
+      "LoanRequest": {
+        "type": "object",
+        "required": [
+          "borrower"
+        ],
+        "properties": {
+          "borrower": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Jacob"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Book 42 not found"
+          }
+        }
+      }
+    }
+  }
+}
