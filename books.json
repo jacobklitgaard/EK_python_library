@@ -3,7 +3,7 @@
     "id": 1,
     "title": "Clean Code",
     "author": "Robert C. Martin",
-    "borrower": "John"
+    "borrower": null
   },
   {
     "id": 2,
@@ -27,6 +27,6 @@
     "id": 6,
     "title": "Hajerne",
     "author": null,
-    "borrower": "Mig"
+    "borrower": null
   }
 ]
