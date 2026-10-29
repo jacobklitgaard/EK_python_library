@@ -5,11 +5,24 @@ Docs:      GET /swagger.json (open it in https://editor.swagger.io/)
 """
 
 import json
+import time
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_file
+from flask import Flask, Response, jsonify, request, send_file
 
 app = Flask(__name__)
+
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+API_KEY = os.environ["LIBRARY_API_KEY"]
+
+@app.before_request
+def require_api_key():
+    if request.method in ("POST", "PUT", "PATCH", "DELETE") and request.headers.get("X-API-Key") != API_KEY:
+        return error("Invalid or missing API key", 401)
 
 # Books are saved to a JSON file so they survive a server restart.
 # A plain Python list would be empty again every time the server starts.
@@ -126,6 +139,18 @@ def delete_book(book_id: int):
     # 204 No Content: it worked, and there is nothing to send back
     return "", 204
 
+# stream books one by one, with a 1 second delay between each book. The client can read the stream as it arrives, instead of waiting for all books to be sent at once. This is useful for long-running requests or when the client wants to display results as they arrive. The response is in the Server-Sent Events (SSE) format, which is a simple text-based protocol for sending events from the server to the client over HTTP. Each event is sent as a block of text starting with "data: " and ending with two newlines. The client can listen for these events and process them as they arrive. The last event is a special "[DONE]" message indicating that there are no more books to send.
+
+@app.get("/books/stream")
+def stream_books():
+    def generate():
+        for book in load_books():
+            yield f"data: {json.dumps(book, ensure_ascii=False)}\n\n"
+            time.sleep(1)  # kun for at du kan se effekten
+        yield "data: [DONE]\n\n"
+
+    return Response(generate(), mimetype="text/event-stream")
+
 
 @app.get("/swagger.json")
 def swagger():
@@ -144,4 +169,4 @@ def method_not_allowed(_):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

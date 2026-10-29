@@ -3,7 +3,7 @@
     "id": 1,
     "title": "Clean Code",
     "author": "Robert C. Martin",
-    "borrower": null
+    "borrower": "John"
   },
   {
     "id": 2,
@@ -16,5 +16,17 @@
     "title": "DevOps Expert",
     "author": "Anoep",
     "borrower": null
+  },
+  {
+    "id": 5,
+    "title": "bamses billedbog",
+    "author": "BAmse",
+    "borrower": null
+  },
+  {
+    "id": 6,
+    "title": "Hajerne",
+    "author": null,
+    "borrower": "Mig"
   }
 ]
